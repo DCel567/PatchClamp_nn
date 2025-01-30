@@ -37,7 +37,8 @@ X_scaled_reshaped = as_strided(X_scaled, shape=(X_scaled.shape[0] - window_size 
 y_updated = y[:-window_size+1]
 y_encoded_updated = encoder.transform(y_updated.values.reshape(-1, 1))
 
-X_train, X_test, y_train, y_test = train_test_split(X_scaled_reshaped, y_encoded_updated, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled_reshaped, y_encoded_updated, test_size=0.2, shuffle=False)
+print(X_test.shape, y_test.shape)
 ###
 model = Sequential()
 #model.add(BatchNormalization(input_shape=(window_size, 1)))
@@ -52,7 +53,7 @@ model.add(Dense(64, activation='relu'))  # Dense layer
 model.add(Dropout(0.2))  # Dropout layer for regularization
 model.add(Dense(3, activation='softmax'))  # Output layer for 3 classes
 
-model.compile(optimizer='adam', loss='mean_squared_error')
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy','recall'])
 ###
 
 # input_shape = (22, 500, 1)
@@ -82,7 +83,7 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=10)
 
 
 class_weights = {0: 1, 1: 1, 2: 2}
-model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, callbacks=[early_stopping], class_weight=class_weights)
+model.fit(X_train, y_train, epochs=1, batch_size=100, validation_split=0.2, callbacks=[early_stopping], class_weight=class_weights)
 
 loss = model.evaluate(X_test, y_test)
 print(f'Test Loss: {loss}')
@@ -98,7 +99,7 @@ plt.figure(figsize=(15, 10))
 # Original Signal
 plt.subplot(3, 1, 1)
 #plt.plot(X_scaled[:, 0, :], label='Original Signal', color='blue')
-plt.plot(X_scaled, label='Original Signal', color='blue')
+plt.plot(X_test, label='Original Signal', color='blue')
 plt.title('Original Signal')
 plt.xlabel('Index')
 plt.ylabel('Signal Value')
@@ -106,7 +107,7 @@ plt.legend()
 
 # Original Arbitrary Number
 plt.subplot(3, 1, 2) #data.index
-plt.plot(y, label='Original Arbitrary Number', color='orange')
+plt.plot(y_test, label='Original Arbitrary Number', color='orange')
 plt.title('Original Arbitrary Number')
 plt.xlabel('Index')
 plt.ylabel('Arbitrary Number')
@@ -125,3 +126,4 @@ plt.show()
 
 # Optionally, save the model
 #model.save('my_model.h5')
+X_test
